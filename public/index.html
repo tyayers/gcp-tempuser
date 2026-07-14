@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Labs Account Provisioning</title>
+    <!-- Google Fonts: Plus Jakarta Sans for headers, Roboto for body -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Top Status Bar (Dynamic Config) -->
+        <header class="app-header">
+            <div class="logo-area">
+                <!-- Google Labs-style Beaker SVG with custom animations -->
+                <div class="logo-beaker-container">
+                    <svg class="logo-beaker" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Beaker Outline -->
+                        <path d="M42 8H22V14L12 48C10 52 14 56 18 56H46C50 56 54 52 52 48L42 14V8Z" stroke="#4285F4" stroke-width="4" stroke-linejoin="round"/>
+                        <!-- Beaker Top Rim -->
+                        <path d="M20 8H44" stroke="#4285F4" stroke-width="4" stroke-linecap="round"/>
+                        <!-- Liquid Inside (Colorful) -->
+                        <path class="beaker-liquid" d="M15 40L12.5 48C11.5 51 14 54 17 54H47C50 54 52.5 51 51.5 48L49 40H15Z" fill="url(#liquid-gradient)" />
+                        <!-- Floating Bubbles -->
+                        <circle class="bubble b1" cx="24" cy="42" r="2.5" fill="#34A853" />
+                        <circle class="bubble b2" cx="38" cy="38" r="2" fill="#FBBC05" />
+                        <circle class="bubble b3" cx="30" cy="30" r="1.5" fill="#EA4335" />
+                        <circle class="bubble b4" cx="34" cy="46" r="2" fill="#4285F4" />
+                        
+                        <defs>
+                            <linearGradient id="liquid-gradient" x1="12" y1="40" x2="52" y2="54" gradientUnits="userSpaceOnUse">
+                                <stop offset="0%" stop-color="#4285F4" />
+                                <stop offset="35%" stop-color="#EA4335" />
+                                <stop offset="70%" stop-color="#FBBC05" />
+                                <stop offset="100%" stop-color="#34A853" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <div class="logo-text">
+                    <h1 class="brand-title">Labs</h1>
+                    <p class="brand-subtitle">Cloud Provisioning Portal</p>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <!-- Provision Form Section -->
+            <section class="card form-card">
+                <div class="card-header">
+                    <h2 class="section-title">Provision Lab Account</h2>
+                    <p class="section-desc">Create a new user account in Google Cloud Identity and grant it administrative access to Apigee.</p>
+                </div>
+
+                <form id="provision-form" class="provision-form" novalidate>
+                    <!-- Name Input -->
+                    <div class="form-group">
+                        <label for="full-name" class="form-label">Full Name</label>
+                        <div class="input-wrapper">
+                            <input 
+                                type="text" 
+                                id="full-name" 
+                                name="name" 
+                                class="form-input" 
+                                placeholder="e.g. John Doe" 
+                                autocomplete="name"
+                                required
+                            >
+                            <span class="input-icon">
+                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="12" cy="7" r="4"></circle>
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="field-error" id="name-error">Please enter your name</div>
+                    </div>
+
+                    <!-- Username Input (Auto-calculated but editable) -->
+                    <div class="form-group">
+                        <div class="label-row">
+                            <label for="username" class="form-label">Desired Username</label>
+                            <span class="input-hint" id="username-hint">Derived from name</span>
+                        </div>
+                        <div class="input-wrapper suffix-wrapper">
+                            <input 
+                                type="text" 
+                                id="username" 
+                                name="username" 
+                                class="form-input" 
+                                placeholder="e.g. john.doe" 
+                                autocomplete="username"
+                                required
+                            >
+                            <span class="input-suffix">@<span id="suffix-domain">domain.com</span></span>
+                        </div>
+                        <div class="field-error" id="username-error">Username is required (lowercase letters, numbers, dots)</div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" id="submit-btn" class="btn btn-primary">
+                        <span class="btn-text">Provision Lab User</span>
+                        <svg class="btn-arrow" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                            <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
+                    </button>
+                </form>
+
+                <!-- Processing State (Hidden initially) -->
+                <div id="processing-state" class="processing-state hidden">
+                    <div class="google-progress-bar">
+                        <div class="bar-color b-blue"></div>
+                        <div class="bar-color b-red"></div>
+                        <div class="bar-color b-yellow"></div>
+                        <div class="bar-color b-green"></div>
+                    </div>
+                    <div class="processing-content">
+                        <h3 class="processing-title">Provisioning Account...</h3>
+                        <p id="processing-step" class="processing-step">Initializing secure setup</p>
+                    </div>
+                </div>
+
+                <!-- Error Toast / Box -->
+                <div id="form-error-alert" class="error-alert hidden">
+                    <span class="error-icon">!</span>
+                    <div class="error-message">
+                        <h4 class="error-title">Failed to Provision User</h4>
+                        <p id="error-desc" class="error-text">An unexpected error occurred.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Provision Results Section (Hidden initially) -->
+            <section id="results-card" class="card results-card hidden">
+                <div class="results-header">
+                    <div class="success-icon-container">
+                        <svg class="success-checkmark" viewBox="0 0 52 52">
+                            <circle class="checkmark-circle" cx="26" cy="26" r="25" fill="none"/>
+                            <path class="checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                        </svg>
+                    </div>
+                    <h2 class="section-title">Provisioning Successful</h2>
+                    <p class="section-desc">Google Cloud Identity user has been successfully created and configured with administrative role.</p>
+                </div>
+
+                <div class="credentials-display">
+                    <!-- GCP Project ID Display -->
+                    <div class="credential-item">
+                        <div class="cred-label">Google Cloud Project ID</div>
+                        <div class="cred-value-container">
+                            <span id="result-project" class="cred-value">loading-project-id</span>
+                            <button class="btn-copy" data-target="result-project" title="Copy Project ID" aria-label="Copy Project ID">
+                                <svg class="icon-copy" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Email Display -->
+                    <div class="credential-item">
+                        <div class="cred-label">Lab User Email</div>
+                        <div class="cred-value-container">
+                            <span id="result-email" class="cred-value">loading@domain.com</span>
+                            <button class="btn-copy" data-target="result-email" title="Copy Email" aria-label="Copy Email">
+                                <svg class="icon-copy" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Password Display -->
+                    <div class="credential-item">
+                        <div class="cred-label">Temporary Password</div>
+                        <div class="cred-value-container">
+                            <span id="result-password" class="cred-value obfuscated">••••••••••••••••</span>
+                            <div class="cred-actions">
+                                <button id="btn-toggle-password" class="btn-action" title="Toggle Visibility" aria-label="Toggle Password Visibility">
+                                    <svg class="icon-eye" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M1 12s4-8 11-8 4 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                        <circle cx="12" cy="12" r="3"></circle>
+                                    </svg>
+                                </button>
+                                <button class="btn-copy" data-target="result-password" title="Copy Password" aria-label="Copy Password">
+                                    <svg class="icon-copy" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <p class="credential-warning">You will need to change this password on your first login.</p>
+                    </div>
+
+                    <!-- Role Status -->
+                    <div class="credential-item role-item">
+                        <div class="role-badge">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" class="g-color-green">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                            </svg>
+                            <span>IAM Role Assigned: <strong class="bold-text">roles/apigee.admin</strong></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="results-actions">
+                    <a id="console-link" href="#" target="_blank" class="btn btn-secondary">
+                        <span>Go to Google Cloud Console</span>
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="7" y1="17" x2="17" y2="7"></line>
+                            <polyline points="7 7 17 7 17 17"></polyline>
+                        </svg>
+                    </a>
+                    <button id="btn-provision-another" class="btn btn-text-only">Provision Another User</button>
+                </div>
+            </section>
+
+            <!-- My Provisioned Accounts Section -->
+            <section id="accounts-card" class="card accounts-card">
+                <div class="card-header-with-action">
+                    <div class="card-header">
+                        <h2 class="section-title">My Provisioned Accounts</h2>
+                        <p class="section-desc">Active users created in this browser session. Deleting will remove them from Cloud Identity and clean up local configurations.</p>
+                    </div>
+                    <div class="search-box">
+                        <span class="search-icon">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                        </span>
+                        <input type="text" id="search-users" placeholder="Search users...">
+                    </div>
+                </div>
+
+                <!-- Table container -->
+                <div id="users-table-container" class="user-list-container">
+                    <table class="user-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Username / Email</th>
+                                <th>GCP Project ID</th>
+                                <th>Created At</th>
+                                <th style="width: 80px; text-align: center;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-list-body">
+                            <!-- Dynamically populated rows -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Empty State Container -->
+                <div id="users-empty-state" class="empty-state hidden">
+                    <svg class="empty-icon" viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                    <h3>No users found</h3>
+                    <p id="empty-state-text">You haven't provisioned any accounts from this browser yet, or none match your search.</p>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Copy Status Notification -->
+    <div id="copy-toast" class="toast hidden">Copied to clipboard!</div>
+
+    <script src="index.js"></script>
+</body>
+</html>
